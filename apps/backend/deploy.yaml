@@ -19,6 +19,29 @@ spec:
           image: k1mwayne/k8s-community-be:v1
           ports:
             - containerPort: 3000    # [체크] 백엔드가 3000번 포트를 사용
+          env:
+            - name: DB_HOST
+              value: "mysql"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_DATABASE
+              value: "edu_community"
+            - name: BACKEND_PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: "development"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets  # K8s에 생성할 시크릿 이름
+                  key: db-password       # 그 안의 키 이름
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: session-secret
           resources:
             limits:
               memory: "512Mi"

@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. SCP는 ubuntu 계정 권한으로 실행됨 (위에서 chown 해줬으므로 성공)
+      # SCP는 ubuntu 계정 권한으로 실행됨 (위에서 chown 해줬으므로 성공)
       - name: Copy manifest files to EC2
         uses: appleboy/scp-action@master
         with:
@@ -21,8 +21,29 @@ jobs:
           source: "./apps,./monitoring"
           target: "/home/ubuntu/k8s-manifests"
           strip_components: 1
+      
+      - name: Execute deployment commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 1. 기존 시크릿이 있다면 삭제 (업데이트를 위해)
+            # (--ignore-not-found 옵션으로 없어도 에러 안 나게 처리)
+            sudo kubectl delete secret backend-secrets --ignore-not-found
 
-      # 2. SSH 접속 후 sudo를 사용하여 root 권한으로 실행
+            # 2. GitHub Secrets의 값을 이용해 K8s Secret 생성
+            # (주의: $ 표시 앞에 \를 붙이거나, 환경변수 처리를 조심해야 함)
+            sudo kubectl create secret generic backend-secrets \
+              --from-literal=db-password='${{ secrets.REAL_DB_PASSWORD }}' \
+              --from-literal=session-secret='${{ secrets.REAL_SESSION_SECRET }}'
+
+            # 3. 그 다음 배포 진행 (이제 파드가 뜨면서 위 시크릿을 읽어감)
+            echo "Deploying Backend..."
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/backend/
+
+      # SSH 접속 후 sudo를 사용하여 root 권한으로 실행
       - name: Execute deployment commands
         uses: appleboy/ssh-action@master
         with:

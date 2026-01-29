@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: community-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: community-db
+  template:
+    metadata:
+      labels:
+        app: community-db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "1q2w3e4r!!A"
+            - name: MYSQL_DATABASE
+              value: "edu_community"
+          ports:
+            - containerPort: 3306
+          
+          # [추가됨] 컨테이너 내부의 데이터 경로를 외부와 연결
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+          
+          resources:
+            limits:
+              memory: "512Mi"
+            requests:
+              memory: "256Mi"
+
+      # [추가됨] 위에서 만든 PVC를 사용하겠다고 선언
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: community-db
