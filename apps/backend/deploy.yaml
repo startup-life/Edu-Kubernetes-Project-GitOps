@@ -6,6 +6,8 @@ metadata:
     app: community-be
 spec:
   replicas: 1
+  strategy:
+    type: Recreate 
   selector:
     matchLabels:
       app: community-be
@@ -18,7 +20,12 @@ spec:
         - name: be
           image: k1mwayne/k8s-community-be:v1
           ports:
-            - containerPort: 3000    # [체크] 백엔드가 3000번 포트를 사용
+            - containerPort: 3000
+          
+          volumeMounts:
+            - mountPath: /usr/src/app/public/image  
+              name: image-storage
+
           env:
             - name: DB_HOST
               value: "mysql"
@@ -35,8 +42,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: backend-secrets  # K8s에 생성할 시크릿 이름
-                  key: db-password       # 그 안의 키 이름
+                  name: backend-secrets
+                  key: db-password
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
@@ -47,3 +54,8 @@ spec:
               memory: "512Mi"
             requests:
               memory: "256Mi"
+
+      volumes:
+        - name: image-storage
+          persistentVolumeClaim:
+            claimName: backend-image-pvc
