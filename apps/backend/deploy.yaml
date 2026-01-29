@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-be
+  labels:
+    app: community-be
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: community-be
+  template:
+    metadata:
+      labels:
+        app: community-be
+    spec:
+      containers:
+        - name: be
+          image: k1mwayne/k8s-community-be:v1
+          ports:
+            - containerPort: 3000    # [체크] 백엔드가 3000번 포트를 사용
+          resources:
+            limits:
+              memory: "512Mi"
+            requests:
+              memory: "256Mi"

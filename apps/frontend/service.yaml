@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: community-fe-svc
+spec:
+  type: NodePort
+  selector:
+    app: community-fe
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80               # 서비스 내부 포트 (Ingress가 여기로 보냄)
+      targetPort: 8080       # [체크] 파드 내부의 8080번으로 연결
+      nodePort: 30080        # [체크] 외부에서 접근할 NodePort

@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: community-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    # 1. 프론트엔드 도메인
+    - host: kube.adapterz.kr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: community-fe-svc
+                port:
+                  number: 80       # Service의 port: 80 을 바라봄
+
+    # 2. 백엔드 도메인 (API)
+    - host: api-kube.adapterz.kr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: community-be-svc
+                port:
+                  number: 80       # Service의 port: 80 을 바라봄

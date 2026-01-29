@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-fe
+  labels:
+    app: community-fe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: community-fe
+  template:
+    metadata:
+      labels:
+        app: community-fe
+    spec:
+      containers:
+        - name: fe
+          image: k1mwayne/k8s-community-fe:v1
+          ports:
+            - containerPort: 8080    # [체크] 프론트엔드가 8080번 포트를 사용
+          resources:
+            limits:
+              memory: "256Mi"
+            requests:
+              memory: "128Mi"
