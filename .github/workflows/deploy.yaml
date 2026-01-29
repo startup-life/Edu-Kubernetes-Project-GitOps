@@ -18,7 +18,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "./apps,./monitoring"
+          source: "./apps"
           target: "/home/ubuntu/k8s-manifests"
           strip_components: 1
 
@@ -41,17 +41,17 @@ jobs:
               --from-literal=session-secret='${{ secrets.REAL_SESSION_SECRET }}'
 
             # ---------------------------------------------------
-            # 2. 리소스 적용 (Deployment, Service, Ingress 수정사항 반영)
+            # 2. 리소스 적용 (Deployment, Service, Ingress, RBAC 수정사항 반영)
             # ---------------------------------------------------
             echo "Applying Manifests..."
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/database/
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/backend/
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/frontend/
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/ingress/rbac.yaml
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/ingress/
 
-            # (옵션) 모니터링
-            # sudo kubectl apply -f /home/ubuntu/k8s-manifests/monitoring/grafana/
-            # sudo kubectl apply -f /home/ubuntu/k8s-manifests/monitoring/prometheus/
+            # 모니터링
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/monitoring/
 
             # ---------------------------------------------------
             # 3. 강제 롤아웃 (중요: 시크릿 변경이나 이미지 갱신 반영을 위해 필수)
