@@ -1,0 +1,52 @@
+name: Deploy to EC2 K8s
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. SCP는 ubuntu 계정 권한으로 실행됨 (위에서 chown 해줬으므로 성공)
+      - name: Copy manifest files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./apps,./monitoring"
+          target: "/home/ubuntu/k8s-manifests"
+          strip_components: 1
+
+      # 2. SSH 접속 후 sudo를 사용하여 root 권한으로 실행
+      - name: Execute deployment commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Kubeconfig 환경변수 명시 (root 설치 기준 /etc/kubernetes/admin.conf가 원본)
+            # 혹은 root의 .kube/config를 쓴다면 sudo만 붙여도 됨.
+            # 가장 확실한 방법: 명령어마다 sudo 붙이기
+
+            echo "Deploying Backend..."
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/backend/
+
+            echo "Deploying Frontend..."
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/frontend/
+
+            echo "Deploying Ingress..."
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/ingress/
+            
+            # (옵션) 모니터링
+            # echo "Deploying Monitoring..."
+            # sudo kubectl apply -f /home/ubuntu/k8s-manifests/monitoring/grafana/
+            # sudo kubectl apply -f /home/ubuntu/k8s-manifests/monitoring/prometheus/
+
+            echo "Checking status..."
+            sudo kubectl get pods -A
