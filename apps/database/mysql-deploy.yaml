@@ -24,11 +24,12 @@ spec:
               value: "edu_community"
           ports:
             - containerPort: 3306
-          
-          # [추가됨] 컨테이너 내부의 데이터 경로를 외부와 연결
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: mysql-storage
+            - mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+              name: mysql-init-config
           
           resources:
             limits:
@@ -36,11 +37,13 @@ spec:
             requests:
               memory: "256Mi"
 
-      # [추가됨] 위에서 만든 PVC를 사용하겠다고 선언
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
             claimName: mysql-pvc
+        - name: mysql-init-config
+          configMap:
+            name: mysql-init-script
 ---
 apiVersion: v1
 kind: Service
