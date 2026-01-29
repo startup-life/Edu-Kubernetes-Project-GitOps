@@ -44,6 +44,7 @@ jobs:
             # 2. 리소스 적용 (Deployment, Service, Ingress 수정사항 반영)
             # ---------------------------------------------------
             echo "Applying Manifests..."
+            sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/database/
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/backend/
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/frontend/
             sudo kubectl apply -f /home/ubuntu/k8s-manifests/apps/ingress/
