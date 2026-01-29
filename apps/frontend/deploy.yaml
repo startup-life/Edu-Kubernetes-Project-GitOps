@@ -17,6 +17,7 @@ spec:
       containers:
         - name: fe
           image: k1mwayne/k8s-community-fe:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080    # [체크] 프론트엔드가 8080번 포트를 사용
           resources:
